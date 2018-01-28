@@ -1,0 +1,15 @@
+.settings
+.project
+.buildpath
+.DS_Store
+*.swp
+.DS_Store
+*.pyc
+.idea
+.metadata
+.tags*
+*.db
+composer.lock
+*.log
+config.json
+/data/*
