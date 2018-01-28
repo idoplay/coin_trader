@@ -5,6 +5,7 @@ import signal
 import time
 import logging
 import sys
+import requests
 import hashlib
 from mover.tools.Util import sTools
 

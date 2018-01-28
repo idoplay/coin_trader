@@ -30,8 +30,8 @@ class ZbApi(Abstract):
         return "".join(slist)
 
     def __hmacSign(self, aValue, aKey):
-        keyb = struct.pack("%ds" % len(aKey), aKey)
-        value = struct.pack("%ds" % len(aValue), aValue)
+        keyb = struct.pack("%ds" % len(aKey), str(aKey))
+        value = struct.pack("%ds" % len(aValue), str(aValue))
         k_ipad = self.__doXOr(keyb, 0x36)
         k_opad = self.__doXOr(keyb, 0x5c)
         k_ipad = self.__fill(k_ipad, 64, 54)
@@ -49,8 +49,9 @@ class ZbApi(Abstract):
         return dg
 
     def __digest(self, aValue):
-        value = struct.pack("%ds" % len(aValue), aValue)
+        value = struct.pack("%ds" % len(aValue), str(aValue))
         print value
+
         h = sha.new()
         h.update(value)
         dg = h.hexdigest()
@@ -66,7 +67,8 @@ class ZbApi(Abstract):
         httpRequest = SafeSession()
         httpRequest.headers.update({'User-Agent': 'Mozilla/5.0 (X11; Linux i686; U;) Gecko/20070322 Kazehakase/0.4.5'})
         res = httpRequest.get(url)
-        doc = json.loads(res)
+        print res
+        doc = json.loads(res.text)
         #request = urllib2.Request(url)
         #response = urllib2.urlopen(request, timeout=2)
         #doc = json.loads(response.read())
@@ -74,16 +76,12 @@ class ZbApi(Abstract):
 
 
     def query_account(self):
-        try:
-            params = "accesskey="+self.mykey+"&method=getAccountInfo"
-            path = 'getAccountInfo'
+        params = "accesskey="+self.mykey+"&method=getAccountInfo"
+        path = 'getAccountInfo'
 
-            obj = self.__api_call(path, params)
-            #print obj
-            return obj
-        except Exception, ex:
-            #print >>sys.stderr, 'zb query_account exception,', ex
-            return None
+        obj = self.__api_call(path, params)
+        return obj
+
 
 
 if __name__ == '__main__':
