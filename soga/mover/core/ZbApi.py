@@ -6,9 +6,10 @@ import struct
 import sha
 import time
 import sys
+from mover.core.Abstract import *
 
 
-class ZbApi:
+class ZbApi(Abstract):
 
     def __init__(self):
         self.mykey = self.config['zb_config']['access_key']
@@ -86,6 +87,6 @@ if __name__ == '__main__':
     access_key = '0'
     access_secret = '2'
 
-    api = ZbApi(access_key, access_secret)
+    #api = ZbApi(access_key, access_secret)
 
-    print api.query_account()
+    #print api.query_account()

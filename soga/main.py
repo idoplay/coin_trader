@@ -4,7 +4,7 @@ import time
 
 from mover.spider.ProductWords import *
 from mover.spider.Demo import *
-from mover.core.ZbApi import *
+from mover.trader.Zb import *
 
 
 #python main.py get_dataoke_list
@@ -18,8 +18,7 @@ def run_demo():
 
 
 def zb():
-    api = ZbApi()
-    print api.query_account()
+    print ZbTrader().account_info()
 
 
 #百度关键词

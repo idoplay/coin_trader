@@ -6,7 +6,6 @@ import time
 import logging
 import sys
 import hashlib
-from mover.core.DB import sMysql
 from mover.tools.Util import sTools
 
 
