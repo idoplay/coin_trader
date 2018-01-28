@@ -57,19 +57,21 @@ class ZbApi(Abstract):
         return dg
 
     def __api_call(self, path, params=''):
-        try:
-            SHA_secret = self.__digest(self.mysecret)
-            sign = self.__hmacSign(params, SHA_secret)
-            reqTime = (int)(time.time()*1000)
-            params += '&sign=%s&reqTime=%d' % (sign, reqTime)
-            url = 'https://trade.zb.com/api/' + path + '?' + params
-            request = urllib2.Request(url)
-            response = urllib2.urlopen(request, timeout=2)
-            doc = json.loads(response.read())
-            return doc
-        except Exception, ex:
-            #print >>sys.stderr, 'zb request ex: ', ex
-            return None
+
+        SHA_secret = self.__digest(self.mysecret)
+        sign = self.__hmacSign(params, SHA_secret)
+        reqTime = (int)(time.time()*1000)
+        params += '&sign=%s&reqTime=%d' % (sign, reqTime)
+        url = 'https://trade.zb.com/api/' + path + '?' + params
+        httpRequest = SafeSession()
+        httpRequest.headers.update({'User-Agent': 'Mozilla/5.0 (X11; Linux i686; U;) Gecko/20070322 Kazehakase/0.4.5'})
+        res = httpRequest.get(url)
+        doc = json.loads(res)
+        #request = urllib2.Request(url)
+        #response = urllib2.urlopen(request, timeout=2)
+        #doc = json.loads(response.read())
+        return doc
+
 
     def query_account(self):
         try:
