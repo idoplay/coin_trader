@@ -12,6 +12,7 @@ from mover.core.Abstract import *
 class ZbApi(Abstract):
 
     def __init__(self):
+        Abstract.__init__(self)
         self.mykey = self.config['zb_config']['access_key']
         self.mysecret = self.config['zb_config']['access_secret']
 
@@ -67,7 +68,7 @@ class ZbApi(Abstract):
             doc = json.loads(response.read())
             return doc
         except Exception, ex:
-            print >>sys.stderr, 'zb request ex: ', ex
+            #print >>sys.stderr, 'zb request ex: ', ex
             return None
 
     def query_account(self):
@@ -79,7 +80,7 @@ class ZbApi(Abstract):
             #print obj
             return obj
         except Exception, ex:
-            print >>sys.stderr, 'zb query_account exception,', ex
+            #print >>sys.stderr, 'zb query_account exception,', ex
             return None
 
 
