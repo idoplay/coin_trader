@@ -8,4 +8,4 @@ class ZbTrader(ZbApi):
         ZbApi.__init__(self)
 
     def account_info(self):
-        self.query_account()
+        print self.query_account()

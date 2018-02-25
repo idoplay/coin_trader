@@ -8,6 +8,35 @@ import time
 import sys
 from mover.core.Abstract import *
 
+suc_codes = ["1000"]
+
+errcode = {
+    "1000": "success",
+    "1001": "normal error",
+    "1002": "internal error",
+    "1003": "verify not passed",
+    "1004": "fund security password locked",
+    "1005": "fund security password not right",
+    "1006": "real-name authentication verifying or not passed",
+    "1009": "current api not in service",
+    "2001": "RMB not sufficient",
+    "2002": "BTC not sufficient",
+    "2003": "LTC not sufficient",
+    "2005": "ETH not sufficient",
+    "2006": "ETC not sufficient",
+    "2007": "BTS not sufficient",
+    "2009": "balance not sufficient",
+    "3001": "order not found",
+    "3002": "invalid amount of money",
+    "3003": "invalid count",
+    "3004": "user not exists",
+    "3005": "illegal argument",
+    "3006": "IP error",
+    "3007": "time expired",
+    "3008": "trade history not found",
+    "4001": "API locked or not opened",
+    "4002": "requests too frequently"
+}
 
 class ZbApi(Abstract):
 
@@ -64,15 +93,16 @@ class ZbApi(Abstract):
         reqTime = (int)(time.time()*1000)
         params += '&sign=%s&reqTime=%d' % (sign, reqTime)
         url = 'https://trade.zb.com/api/' + path + '?' + params
+        print url
         httpRequest = SafeSession()
         httpRequest.headers.update({'User-Agent': 'Mozilla/5.0 (X11; Linux i686; U;) Gecko/20070322 Kazehakase/0.4.5'})
         res = httpRequest.get(url)
-        print res
-        doc = json.loads(res.text)
+        #print res.text
+        #doc = json.loads(res.text)
         #request = urllib2.Request(url)
         #response = urllib2.urlopen(request, timeout=2)
         #doc = json.loads(response.read())
-        return doc
+        return res.text
 
 
     def query_account(self):
