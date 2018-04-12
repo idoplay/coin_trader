@@ -1,11 +1,11 @@
 #! -*- coding:utf-8 -*-
 import json
-import urllib2
 import hashlib
 import struct
 import sha
 import time
 import sys
+import base64
 from mover.core.Abstract import *
 
 suc_codes = ["1000"]
@@ -44,6 +44,8 @@ class ZbApi(Abstract):
         Abstract.__init__(self)
         self.mykey = self.config['zb_config']['access_key']
         self.mysecret = self.config['zb_config']['access_secret']
+        self.trade_host = self.config['zb_config']['trade_host']
+        self.hq_host = self.config['zb_config']['hq_host']
 
     def __fill(self, value, lenght, fillByte):
         if len(value) >= lenght:
@@ -86,23 +88,31 @@ class ZbApi(Abstract):
         dg = h.hexdigest()
         return dg
 
+    def __http_get(self, url):
+        if self.config['env'] == 'dev':
+            httpRequest = SafeSession()
+            httpRequest.headers.update({'User-Agent': 'Mozilla/5.0 (X11; Linux i686; U;) Gecko/20070322 Kazehakase/0.4.5'})
+            urlx = self.config['zb_config']['dev_api'] + base64.b64encode(url)
+            print urlx
+            res = httpRequest.get(urlx)
+            return res.text
+        else:
+            httpRequest = SafeSession()
+            httpRequest.headers.update({'User-Agent': 'Mozilla/5.0 (X11; Linux i686; U;) Gecko/20070322 Kazehakase/0.4.5'})
+            res = httpRequest.get(url)
+            return res.text
+
     def __api_call(self, path, params=''):
 
         SHA_secret = self.__digest(self.mysecret)
         sign = self.__hmacSign(params, SHA_secret)
         reqTime = (int)(time.time()*1000)
         params += '&sign=%s&reqTime=%d' % (sign, reqTime)
-        url = 'https://trade.zb.com/api/' + path + '?' + params
+        url = self.trade_host + path + '?' + params
         print url
-        httpRequest = SafeSession()
-        httpRequest.headers.update({'User-Agent': 'Mozilla/5.0 (X11; Linux i686; U;) Gecko/20070322 Kazehakase/0.4.5'})
-        res = httpRequest.get(url)
-        #print res.text
-        #doc = json.loads(res.text)
-        #request = urllib2.Request(url)
-        #response = urllib2.urlopen(request, timeout=2)
-        #doc = json.loads(response.read())
-        return res.text
+
+        return self.__http_get(url)
+
 
 
     def query_account(self):

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from mover.core.ZbApi import *
+from mover.api.ZbApi import *
 
 
 class ZbTrader(ZbApi):
@@ -8,4 +8,13 @@ class ZbTrader(ZbApi):
         ZbApi.__init__(self)
 
     def account_info(self):
-        print self.query_account()
+        account_info = json.loads(self.query_account())
+        coins = account_info['result']['coins']
+        for x in xrange(0,len(coins)):
+            freez = float(coins[x]['freez'])
+            available = float(coins[x]['available'])
+            enName = coins[x]['enName']
+            if freez > 0 or available > 0.001 or coins[x]['enName'] =='ZB':
+                freez = '%.2f' % freez
+                available = '%.2f' % available
+                self.print_green("%s==%s==%s" % (enName,available,freez))
