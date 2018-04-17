@@ -93,7 +93,7 @@ class ZbApi(Abstract):
             httpRequest = SafeSession()
             httpRequest.headers.update({'User-Agent': 'Mozilla/5.0 (X11; Linux i686; U;) Gecko/20070322 Kazehakase/0.4.5'})
             urlx = self.config['zb_config']['dev_api'] + base64.b64encode(url)
-            print urlx
+            #print urlx
             res = httpRequest.get(urlx)
             return res.text
         else:
@@ -109,19 +109,25 @@ class ZbApi(Abstract):
         reqTime = (int)(time.time()*1000)
         params += '&sign=%s&reqTime=%d' % (sign, reqTime)
         url = self.trade_host + path + '?' + params
-        print url
-
+        #print url
         return self.__http_get(url)
 
-
+    def query_markets(self):
+        url = self.hq_host+ 'markets'
+        print url
+        return self.__http_get(url)
 
     def query_account(self):
-        params = "accesskey="+self.mykey+"&method=getAccountInfo"
         path = 'getAccountInfo'
+        params = "accesskey="+self.mykey+"&method=getAccountInfo"
+        data = self.__api_call(path, params)
+        return data
 
-        obj = self.__api_call(path, params)
-        return obj
-
+    def query_user_address(self, currency):
+        path = 'getUserAddress'
+        params = "accesskey="+self.mykey+"&currency="+currency+"&method=getUserAddress"
+        data = self.__api_call(path, params)
+        return data
 
 
 if __name__ == '__main__':

@@ -18,3 +18,17 @@ class ZbTrader(ZbApi):
                 freez = '%.2f' % freez
                 available = '%.2f' % available
                 self.print_green("%s==%s==%s" % (enName,available,freez))
+
+    def get_user_address(self):
+        return self.config['zb_config']['currency']
+        '''
+        for key in a.keys():
+            b = self.query_user_address(key)
+            print b
+            print(key+':'+a[key]['address'])
+        '''
+
+    def get_markets(self):
+        account_info = json.loads(self.query_markets())
+        print account_info
+

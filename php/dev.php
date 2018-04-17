@@ -10,13 +10,20 @@ if(empty($url)){
 }
 $url = base64_decode($url);
 $c = file_get_contents($url);
+echo $c;exit;
 $d = json_decode($c,true);
 
-if(!isset($d['code']) || $d['code']==1000){
+if(!isset($d['code'])){
     $res = array(
         'status'=>1,
         'msg'=>'ok',
         'result'=>$d['result']
+    );
+}elseif(isset($d['code']) && $d['code']==1000){
+    $res = array(
+        'status'=>1,
+        'msg'=>'ok',
+        'result'=>$d['message']['datas']
     );
 }else{
     $res['msg'] = $d['message'];
