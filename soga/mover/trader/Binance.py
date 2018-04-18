@@ -29,9 +29,9 @@ class BinanceTrader(BinanceApi):
         decimal.getcontext().prec = 4
 
         #汇率计算价格
-        cny_usd = self.get_cny_usd()
-        cny_usd = Decimal(cny_usd)
-        #cny_usd = Decimal(u'6.2667')
+        #cny_usd = self.get_cny_usd()
+        #cny_usd = Decimal(cny_usd)
+        cny_usd = Decimal(u'6.2667')
 
         self.binance_api()
         tickers = self.client.get_all_tickers()
@@ -41,26 +41,16 @@ class BinanceTrader(BinanceApi):
         for x in xrange(0, len(tickers)):
             #print('%s: %s' % (tickers[x]['symbol'], tickers[x]['price']))
             ticker_data[tickers[x]['symbol']] = tickers[x]
-
-
         btc = Decimal(ticker_data['BTCUSDT']['price'])
         eth = Decimal(ticker_data['ETHUSDT']['price'])
         #print btc
 
-        #0.00018764
-
-        #0.00001188
         #手续费
         #
         #04-17 21:45:12  EOS/BTC 限价  卖   0.0010864   0.0010864   1.00    1.00    0.0010864   --  完全成交
         #04-17 21:44:23  EOS/ETH 限价  买   0.017088    0.017088    1.00    1.00    0.017088    --
 
         #bnb_rate = 用 bnb 万分之五
-
-        #btc_cny = float(btc * cny_usd)
-        #eth_cny = float(eth * cny_usd)
-        #print btc_cny
-        #sys.exit()
         ethtobtc = Decimal(eth / btc);
 
         print "%s====%s===%s" % (btc, eth, ethtobtc)
@@ -71,6 +61,79 @@ class BinanceTrader(BinanceApi):
         for (k,v) in  ticker_data.items():
             if k[-4:] == 'USDT' or k == 'ETHBTC':
                 continue
+
+            isend = k[-3:]
+            if isend == 'BTC':
+                p1_code = k
+                p2_code = self._make_code(k) % k[0:-3]
+                if p2_code not in trkeys:
+                    continue
+
+
+            elif isend == 'ETH':
+                p1_code = self._make_code(k) % k[0:-3]
+                if p1_code not in trkeys:
+                    continue
+                p2_code = k
+
+            order_btc = self.get_order_books(p1_code, 5)
+            #print orders
+            ifbb_btc = Decimal(order_btc['bids'][0][0]) * btc * cny_usd
+            ifss_btc = Decimal(order_btc['asks'][0][0]) * btc * cny_usd
+
+
+            order_eth = self.get_order_books(p2_code, 5)
+            #print orders
+            ifbb_eth = Decimal(order_eth['bids'][0][0]) * eth * cny_usd
+            ifss_eth = Decimal(order_eth['asks'][0][0]) * eth * cny_usd
+
+
+            #从最小值开始买进
+            minA = min(ifbb_btc, ifbb_eth)
+            #whomax = p1_code
+            profit = ((ifbb_eth - ifbb_btc) /  ifbb_btc) * 100
+            whobuy = p1_code
+            whosell = p2_code
+            buy_price = ifbb_btc
+            sell_price = ifbb_eth
+            #btc入eth出
+
+            #当前应该买入eth的单位
+            #sb_m = eth
+            #sb_s = btc
+            #单次交易金额为100元等值
+            maxMoney = Decimal(u'50')
+            #if profit > 1.8:
+            #    maxMoney = Decimal(u'300')
+
+            #换算成btc或eth购买的数量
+            buynum = Decimal(maxMoney/ifbb_btc)
+
+            if minA == ifbb_eth:
+                profit = ((ifbb_btc - ifbb_eth) /  ifbb_eth) * 100
+                whobuy = p2_code
+                whosell = p1_code
+                buynum = Decimal(maxMoney/ifbb_eth)
+                buy_price = ifbb_eth
+                sell_price = ifbb_btc
+
+            if whobuy in buyList:
+                continue
+            buyList.append(whobuy)
+
+            if profit < 1.1:
+                continue
+            print u"%s实时盘口=M1:%s==S1:%s" % (p1_code, ifbb_btc, ifss_btc)
+            print u"%s实时盘口=M1:%s==S1:%s" % (p2_code, ifbb_eth, ifss_eth)
+            print "B:%s===S:%s===whobuy(%s)===whosell(%s)===BTC:%s===ETH:%s===P:%s===BuyNum:%s" % (buy_price, sell_price, whobuy, whosell, Decimal(btc * cny_usd), Decimal(eth * cny_usd), profit, buynum)
+
+            if buynum > 1:
+                buynum = int(buynum)
+            else:
+                buynum = "{:.3f}".format(buynum)
+            #sys.exit()
+        sys.exit()
+        '''
             #print v
             #print k
             #p1code 都是btc开始
@@ -84,8 +147,9 @@ class BinanceTrader(BinanceApi):
                 p1 = Decimal(v['price']) * btc * cny_usd
                 p2 = Decimal(ticker_data[p2_code]['price']) * eth * cny_usd
 
-                #print "%s====%s" % (p1, p2)
-                #print "%s===%s" % (p1_code, p2_code)
+                #只展示不用于计算
+                p1_price = v['price']
+                p2_price = ticker_data[p2_code]['price']
 
             elif isend == 'ETH':
                 p1_code = self._make_code(k) % k[0:-3]
@@ -95,9 +159,9 @@ class BinanceTrader(BinanceApi):
                 p1 = Decimal(ticker_data[p1_code]['price']) * btc * cny_usd
                 p2 = Decimal(v['price']) * eth * cny_usd
 
-                #print "%s====%s" % (p1, p2)
-                #print "%s===%s" % (p1_code, p2_code)
-
+                #只展示不用于计算
+                p1_price = ticker_data[p1_code]['price']
+                p2_price = v['price']
 
             #print "%s====%s" % (p1, p2)
 
@@ -108,9 +172,10 @@ class BinanceTrader(BinanceApi):
             whobuy = p2_code
             whosell = p1_code
             #当前应该买入eth的单位
-            st = 'eth'
+            sb_m = eth
+            sb_s = btc
             #单次交易金额为100元等值
-            maxMoney = Decimal(u'200')
+            maxMoney = Decimal(u'50')
             #if profit > 1.8:
             #    maxMoney = Decimal(u'300')
 
@@ -122,21 +187,38 @@ class BinanceTrader(BinanceApi):
                 whobuy = p1_code
                 whosell = p2_code
                 #默认btc买入
-                st = 'btc'
+                sb_m = btc
+                sb_s = eth
                 #if profit > 1.8:
                 #    maxMoney = u'100'
                 buynum = Decimal(maxMoney/p1)
 
+            if whobuy in buyList:
+                continue
+            buyList.append(whobuy)
+
             if profit > 1.1:
-                print "%s===%s===MJ%s===Buy:%s===Sell:%s===P:%s====BuyNum:%s" % (p1, p2, cny_usd, whobuy, whosell, profit, buynum)
+                print "%s(%s)===%s(%s)===BTC:%s===ETH:%s==Buy:%s===Sell:%s===P:%s====BuyNum:%s" % (p1, p1_price, p2, p2_price, Decimal(btc * cny_usd), Decimal(eth * cny_usd), whobuy, whosell, profit, buynum)
+                orders = self.get_order_books(whobuy, 5)
+                print orders
+                ifbb = Decimal(orders['bids'][0][0]) * sb_m * cny_usd
+                ifss = Decimal(orders['asks'][0][0]) * sb_m * cny_usd
+                print u"预计买入实时盘口=M1:%s==S1:%s" % (ifbb, ifss)
+
+                orders2 = self.get_order_books(whosell, 5)
+                print orders2
+                ifbb2 = Decimal(orders2['bids'][0][0]) * sb_s * cny_usd
+                ifss2 = Decimal(orders2['asks'][0][0]) * sb_s * cny_usd
+                print u"预计卖出实时盘口=M1:%s==S1:%s" % (ifbb2, ifss2)
+
+
+
+            #获取实际盘口,确认是否可以交易
 
             if profit < 1.7:
                 continue
 
-            if whobuy in buyList:
-                continue
 
-            buyList.append(whobuy)
             #buynum = "{:.3f}".format(float(buynum))
             #0.00064819
             #print "%s===%s===%s" % (p1, p2, maxA)
@@ -154,25 +236,11 @@ class BinanceTrader(BinanceApi):
 
             print buynum
             #sys.exit()
-            buyRes = self.buy_market(whobuy, buynum)
-            print buyRes
-            #origQty = buyRes['executedQty']
-            print self.sell_market(whosell, buynum)
-            sys.exit()
-            '''
-            p1 = 1 * 0.00108
-            p1_code = 'EOSBTC'
-            p2 = 1 * ethtobtc * 0.015102
-            p2_code = 'EOSETH'
-            p1 = float(p1*btc)
-            p2 = float(p2*btc)
-
-            '''
+            #buyRes = self.buy_market(whobuy, buynum)
+            #print buyRes
+            #origQty = buyRes['executedQty']executedQty
+            #print self.sell_market(whosell, buynum)
             #sys.exit()
-
-        #print btc
-        #print eth
-        #print ethtobtc
         sys.exit()
 
         #计算利润最大化执行一笔交易
@@ -191,6 +259,7 @@ class BinanceTrader(BinanceApi):
         lastAsk = float(orders['asks'][0][0]) #last sell price (ask)
         profit = (lastAsk - lastBid) /  lastBid * 100
         print('%.2f%% profit : %s (bid:%.8f-ask%.8f)' % (profit, symbol, lastBid, lastAsk))
+        '''
 
 
     def profits(self, asset='BTC'):
