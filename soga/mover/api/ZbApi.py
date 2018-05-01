@@ -93,7 +93,7 @@ class ZbApi(Abstract):
             httpRequest = SafeSession()
             httpRequest.headers.update({'User-Agent': 'Mozilla/5.0 (X11; Linux i686; U;) Gecko/20070322 Kazehakase/0.4.5'})
             urlx = self.config['zb_config']['dev_api'] + base64.b64encode(url)
-            #print urlx
+            print urlx
             res = httpRequest.get(urlx)
             return res.text
         else:
@@ -121,6 +121,7 @@ class ZbApi(Abstract):
         path = 'getAccountInfo'
         params = "accesskey="+self.mykey+"&method=getAccountInfo"
         data = self.__api_call(path, params)
+        #print data.text
         return data
 
     def query_user_address(self, currency):

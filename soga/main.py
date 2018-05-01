@@ -8,7 +8,8 @@ from mover.trader.Zb import *
 from mover.trader.Binance import *
 
 from binance.client import Client
-import websocket
+
+from mover.spider.Instagram import *
 
 
 #python main.py get_dataoke_list
@@ -20,6 +21,8 @@ def Usage():
 def run_demo():
     DemoSpider().run()
 
+def ins():
+    InstagramSpider().run()
 
 def zb():
     obj = ZbTrader();

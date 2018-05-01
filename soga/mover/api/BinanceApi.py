@@ -22,6 +22,7 @@ class BinanceApi(Abstract):
         Abstract.__init__(self)
         self.key = self.config['binance_config']['access_key']
         self.secret = self.config['binance_config']['access_secret']
+        self.proxies = self.config['proxies']
 
     def binance_api(self):
         self.client = Client(self.config['binance_config']['access_key'], self.config['binance_config']['access_secret'])
@@ -37,8 +38,19 @@ class BinanceApi(Abstract):
     '''
     def get_cny_usd(self):
         path = "https://www.binance.com/exchange/public/cnyusd"
-        res = requests.get(path, timeout=30, verify=True).json()
+        res = self._getss(path)
         return res['rate']
+
+    def get_all_tickers_bak(self):
+        #有缓存
+        path = "https://www.binance.com/api/v1/ticker/allPrices"
+        return self._getss(path)
+
+    def get_all_tickers(self):
+        #实时当前成交价
+        path = "%s/ticker/price" % self.BASE_URL_V3
+        params = {}
+        return self._get_no_sign(path, params)
 
     def get_book_ticker(self,market=None):
         #返回买卖一的价位,为空返回所有数据
@@ -82,11 +94,11 @@ class BinanceApi(Abstract):
         return self._get(path, {})
 
     def get_products(self):
-        return requests.get(self.PUBLIC_URL, timeout=30, verify=True).json()
+        return self._getss(self.PUBLIC_URL)
 
     def get_exchange_info(self):
         path = "%s/exchangeInfo" % self.BASE_URL
-        return requests.get(path, timeout=30, verify=True).json()
+        return self._getss(path)
 
     def get_open_orders(self, market, limit = 100):
         path = "%s/openOrders" % self.BASE_URL_V3
@@ -137,7 +149,7 @@ class BinanceApi(Abstract):
     def _get_no_sign(self, path, params={}):
         query = urlencode(params)
         url = "%s?%s" % (path, query)
-        return requests.get(url, timeout=30, verify=True).json()
+        return self._getss(url)
 
     def _sign(self, params={}):
         data = params.copy()
@@ -157,16 +169,31 @@ class BinanceApi(Abstract):
         query = urlencode(self._sign(params))
         url = "%s?%s" % (path, query)
         header = {"X-MBX-APIKEY": self.key}
+
+        proxies = {
+            'http': 'http://127.0.0.1:1087',
+            'https': 'https://127.0.0.1:1087'
+        }
+
         return requests.get(url, headers=header, \
-            timeout=30, verify=True).json()
+            timeout=30, verify=True, proxies=proxies).json()
+
+    def _getss(self, path, params={}):
+        return requests.get(path, timeout=30, verify=True, proxies=self.proxies).json()
 
     def _post(self, path, params={}):
         params.update({"recvWindow": 120000})
         query = urlencode(self._sign(params))
         url = "%s?%s" % (path, query)
         header = {"X-MBX-APIKEY": self.key}
+
+        proxies = {
+            'http': 'http://127.0.0.1:1087',
+            'https': 'https://127.0.0.1:1087'
+        }
+
         return requests.post(url, headers=header, \
-            timeout=30, verify=True).json()
+            timeout=30, verify=True, proxies=proxies).json()
 
     def _order(self, market, quantity, side, rate=None):
         params = {}
@@ -193,4 +220,4 @@ class BinanceApi(Abstract):
         url = "%s?%s" % (path, query)
         header = {"X-MBX-APIKEY": self.key}
         return requests.delete(url, headers=header, \
-            timeout=30, verify=True).json()
+            timeout=30, verify=True, proxies=self.proxies).json()

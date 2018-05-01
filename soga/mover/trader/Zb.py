@@ -9,6 +9,7 @@ class ZbTrader(ZbApi):
 
     def account_info(self):
         account_info = json.loads(self.query_account())
+        print account_info
         coins = account_info['result']['coins']
         for x in xrange(0,len(coins)):
             freez = float(coins[x]['freez'])
