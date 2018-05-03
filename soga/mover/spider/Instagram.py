@@ -15,8 +15,8 @@ class InstagramSpider(SpiderEngine):
         self.proxies = self.config['proxies']
 
     def run(self):
-        #self.get_user_list()
-        self.get_user_page('designhome')
+        self.get_user_list()
+        #self.get_user_page('designhome')
 
 
     def get_user_list(self):
@@ -25,7 +25,7 @@ class InstagramSpider(SpiderEngine):
         res = requests.get(url, headers=self.header, timeout=30, verify=True, proxies=self.proxies)
         re = res.json()
 
-        aurl = self.config["server_api"]+"/index2.php"
+        aurl = self.config["server_api"]+"/udata/tags"
         res = requests.post(aurl, data=json.dumps(re))
         print res.text
 
@@ -35,6 +35,15 @@ class InstagramSpider(SpiderEngine):
         url = "https://www.instagram.com/%s/" % name
         print self.header
         res = requests.get(url, headers=self.header, timeout=30, verify=True, proxies=self.proxies)
-        res2 = self.sMatch('window\._sharedData =', ';<\/script>', res.text, 0)
+        #print res.text
+        res2 = self.sMatch('window\._sharedData=', ';<\/script>', res.text, 0)
+        if len(res2):
+            stt = res2[0].replace('window.__initialDataLoaded(window._sharedData)','')
 
-        print res2[0]
+        res3 = self.sMatch('window\._sharedData = ', ';<\/script>', res.text, 0)
+        if len(res3):
+            stt = res3[0]
+
+        aurl = self.config["server_api"]+"/udata/pics"
+        res = requests.post(aurl, data=stt)
+        print res.text
